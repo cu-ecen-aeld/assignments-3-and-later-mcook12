@@ -49,12 +49,10 @@ then
 	fi
 fi
 echo "Removing the old writer utility and compiling as a native application"
-if [ -f "./writer" -a -f "writer.o" ]
-then
-	make clean
-fi
-
+make clean
+echo "Old utilities removed"
 make
+echo "New Utility made"
 
 for i in $( seq 1 $NUMFILES)
 do
@@ -70,6 +68,13 @@ set +e
 echo ${OUTPUTSTRING} | grep "${MATCHSTR}"
 if [ $? -eq 0 ]; then
 	echo "success"
+	echo $(pwd)
+	if [ -x ./writer ]
+	then
+		echo "writer found"
+	else
+		echo "writer not found"
+	fi
 	exit 0
 else
 	echo "failed: expected  ${MATCHSTR} in ${OUTPUTSTRING} but instead found"
