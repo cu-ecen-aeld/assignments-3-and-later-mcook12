@@ -100,15 +100,15 @@ sudo mknod -m 666  dev/console c 5 1
 # TODO: Clean and build the writer utility
 cd "$FINDER_APP_DIR"
 make clean
-make CROSS_COMPILE=/home/michael/arm-cross-compiler/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+make CROSS_COMPILE=${SYSROOT}/../../bin/aarch64-none-linux-gnu-
 cd "$OUTDIR/rootfs"
-cp /home/michael/assignment-1-mcook12/finder-app/writer home
+cp ${FINDER_APP_DIR}/writer home
 # TODO: Copy the finder related scripts and executables to the /home directory
 # on the target rootfs
-cp /home/michael/assignment-1-mcook12/finder-app/finder.sh home/
-cp /home/michael/assignment-1-mcook12/finder-app/conf/ -R home/
-cp /home/michael/assignment-1-mcook12/finder-app/finder-test.sh home/
-cp /home/michael/assignment-1-mcook12/finder-app/autorun-qemu.sh home/
+cp ${FINDER_APP_DIR}/finder.sh home/
+cp ${FINDER_APP_DIR}/conf/ -R home/
+cp ${FINDER_APP_DIR}/finder-test.sh home/
+cp ${FINDER_APP_DIR}/autorun-qemu.sh home/
 # TODO: Chown the root directory
 cd "$OUTDIR/rootfs"
 sudo chown -R root:root ${OUTDIR}/rootfs
