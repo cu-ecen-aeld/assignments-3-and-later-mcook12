@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Script to find files in given path that contain given text
 # Author: Michael Cook
 
