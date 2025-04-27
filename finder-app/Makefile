@@ -1,7 +1,16 @@
-writer : writer.o
-	${CROSS_COMPILE}gcc -o writer writer.o
+CC = gcc
+CROSS_COMPILE ?=
 
-writer.o : writer.c 
-	${CROSS_COMPILE}gcc -c writer.c
+TARGET = writer
+
+SRC = writer.c
+
+CFLAGS ?=
+
+all: $(TARGET)
+
+$(TARGET): $(SRC)
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -o $@ $<
+
 clean :
-	rm -f writer writer.o
+	rm -f $(TARGET) *.o
