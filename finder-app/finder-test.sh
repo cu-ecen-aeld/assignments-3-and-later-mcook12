@@ -48,20 +48,21 @@ then
 		exit 1
 	fi
 fi
-echo "Removing the old writer utility and compiling as a native application"
+#echo "Removing the old writer utility and compiling as a native application"
 #if [ -f "./writer" -a -f "writer.o" ]
 #then
 #	make clean
 #fi
 
 #make
-
+WORKDIR="$0"
+WORKDIRNAME=$(dirname "$WORKDIR")
 for i in $( seq 1 $NUMFILES)
 do
-	./writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
+	$WORKDIRNAME/writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
 done
 
-OUTPUTSTRING=$(./finder.sh "$WRITEDIR" "$WRITESTR")
+OUTPUTSTRING=$($WORKDIRNAME/finder.sh "$WRITEDIR" "$WRITESTR")
 
 # remove temporary directories
 rm -rf /tmp/aeld-data
