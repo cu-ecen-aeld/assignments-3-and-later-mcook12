@@ -1,16 +1,23 @@
 CC = gcc
-CROSS_COMPILE ?=
-
 TARGET = writer
+OBJECTS = writer.o
+CFLAGS = -Wall -g
+LDFLAGS =
 
-SRC = writer.c
-
-CFLAGS ?=
+ifneq ($(CROSS_COMPILE),)
+	CC = $(CROSS_COMPILE)gcc
+	LDFLAGS += -static
+endif
 
 all: $(TARGET)
 
-$(TARGET): $(SRC)
-	$(CROSS_COMPILE)$(CC) $(CFLAGS) -o $@ $<
+$(TARGET): $(OBJECTS)
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $(TARGET)
+
+writer.o: writer.c
+	$(CC) $(CFLAGS) -c writer.c
 
 clean :
-	rm -f $(TARGET) *.o
+	rm -f $(TARGET) $(OBJECTS)
+
+.PHONY: all clean
