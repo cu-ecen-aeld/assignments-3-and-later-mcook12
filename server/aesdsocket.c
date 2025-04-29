@@ -94,9 +94,22 @@ int main(int argc, char *argv[]){
 	freeaddrinfo(servinfo);
 
 	if(daemonize) {
-		if (daemon(0, 0) == -1) {
+		pid_t pid;
+		pid = fork();
+		if (pid == -1){
 			//error
-			return -1;
+			exit(EXIT_FAILURE);
+		}
+		if (pid > 0) {
+			exit(EXIT_SUCCESS);
+		}
+		if (setsid() == -1) {
+			//error
+			exit(EXIT_FAILURE);
+		}
+		if (chdir("/") == -1) {
+			//error
+			exit(EXIT_FAILURE);
 		}
 	}
 
