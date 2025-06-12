@@ -1,11 +1,11 @@
-CC = gcc
-TARGET = aesdsocket
-OBJECTS = aesdsocket.o
-CFLAGS = -Wall -g
-LDFLAGS =
+CC ?= gcc
+TARGET ?= aesdsocket
+OBJECTS ?= aesdsocket.o
+CFLAGS ?= -Wall -g
+LDFLAGS ?=
 
 ifneq ($(CROSS_COMPILE),)
-	CC = $(CROSS_COMPILE)gcc
+	CC ?= $(CROSS_COMPILE)gcc
 	LDFLAGS += -static
 endif
 
