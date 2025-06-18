@@ -1,7 +1,7 @@
-#Hello World Kernel Oops
+# Hello World Kernel Oops
 Running `echo "hello_world" > /dev/faulty` command resulted in the output message below.
 
-##Entire Output
+## Entire Output
 ```
 Unable to handle kernel NULL pointer dereference at virtual address 0000000000000000
 Mem abort info:
@@ -47,11 +47,11 @@ Code: d2800001 d2800000 d503233f d50323bf (b900003f)
 ---[ end trace 0000000000000000 ]---
 ```
 
-##Analysis
+## Analysis
 The following line at the top of the output indicates that this is related to an attempted dereference of a NULL pointer.
 `Unable to handle kernel NULL pointer dereference at virtual address 000000000000000`
 
-`pc : faulty_write+0x10/0x20 [faulty]'
+`pc : faulty_write+0x10/0x20 [faulty]`
 This line indicates where the program was when the error occured. As indicated, the error happened within the faulty\_write function and the 0x10 indicates that it occured 0x10 or 16 bytes into the function that is 0x20 or 32 bytes long. The contents of the Call Trace section list further commands that were executed at the time of the error.
 
 
