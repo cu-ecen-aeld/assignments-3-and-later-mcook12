@@ -1,23 +1,14 @@
-CC ?= gcc
-TARGET ?= aesdsocket
-OBJECTS ?= aesdsocket.o
-CFLAGS ?= -Wall -g
-LDFLAGS ?=
+CC ?=gcc
+CFLAGS ?= -g -Wall
+EXTRA_CFLAGS ?= -DUSE_AESD_CHAR_DEVICE=1
 
-ifneq ($(CROSS_COMPILE),)
-	CC ?= $(CROSS_COMPILE)gcc
-	LDFLAGS += -static
-endif
+default:
+	$(CROSS_COMPILE)$(CC) $(EXTRA_CFLAGS) $(LDFLAGS) $(CFLAGS) aesdsocket.c -o aesdsocket
 
-all: $(TARGET)
+all:
+	$(CROSS_COMPILE)$(CC) $(EXTRA_CFLAGS) $(LDFLAGS) $(CFLAGS) aesdsocket.c -o aesdsocket
 
-$(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) $(LDFLAGS) -o $(TARGET)
-
-aesdsocket.o: aesdsocket.c
-	$(CC) $(CFLAGS) -c aesdsocket.c
-
-clean :
-	rm -f $(TARGET) $(OBJECTS)
+clean:
+	rm -f aesdsocket aesdsocket.o
 
 .PHONY: all clean

@@ -10,8 +10,13 @@
 
 #ifdef __KERNEL__
 #include <linux/string.h>
+#include <linux/slab.h>
+//#define memfree(ptr) kfree(ptr)
 #else
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+//#define memfree(ptr) free(ptr)
 #endif
 
 #include "aesd-circular-buffer.h"
@@ -41,7 +46,9 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
 			return NULL;
 		}
 	}
-	*entry_offset_byte_rtn = char_offset;
+	if (entry_offset_byte_rtn){
+		*entry_offset_byte_rtn = char_offset;
+	}
 	return buffer->entry+i;
 }
 
@@ -60,7 +67,8 @@ void aesd_circular_buffer_add_entry(struct aesd_circular_buffer *buffer, const s
 
 	buffer->entry[buffer->in_offs] = *add_entry;
 	if(buffer->full){
-		buffer->out_offs = buffer->out_offs + 1;
+		//kfree(buffer->entry[buffer->out_offs].buffptr);
+		buffer->out_offs = (buffer->out_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
 	}
 	if((buffer->in_offs) == (AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED - 1)){
 		buffer->full = 1;
