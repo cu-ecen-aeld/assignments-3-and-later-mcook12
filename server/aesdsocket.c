@@ -20,6 +20,8 @@
 #include <pthread.h>
 #if USE_AESD_CHAR_DEVICE == 1
 	#define DATA_PATH ("/dev/aesdchar")
+	#include "../aesd-char-driver/aesd_ioctl.h"
+	#define AESD_IOCTLSEEKTOCMD "AESDCHAR_IOCSEEKTO:"
 #else
 	#define DATA_PATH ("var/tmp/aesdsocketdata")
 #endif
@@ -65,35 +67,68 @@ void terminate(int signum)
 	exit(0);
 }
 
-void* socket_handler(void* arg){
-	struct thread_data *t_data = (struct thread_data*) arg;
-	int socket_id = t_data->socket_id;
-	ssize_t stor;
-	char buffer[BUF_SIZE];
-        while ((stor = recv(socket_id, buffer, BUF_SIZE -1, 0)) > 0){
-		buffer[stor] = '\0';
+void* socket_handler(void* args){
+    struct thread_data *t_data = (struct thread_data *)args;
+    int connection = t_data->socket_id;
+    char local_buffer[BUF_SIZE];
 
-		pthread_mutex_lock(&s_mutex);
-		if ((fd = open(DATA_PATH, O_CREAT | O_WRONLY | O_APPEND, 0644)) >= 0){
-			write(fd, buffer, stor);
-			close(fd);
-		}
-		pthread_mutex_unlock(&s_mutex);
-		if (strchr(buffer, '\n')) break;
-	}
+    int size = recv(connection, local_buffer, sizeof(local_buffer)-1, 0);
+    local_buffer[size] = '\0';
+    
+    pthread_mutex_lock(&s_mutex);
+#ifdef USE_AESD_CHAR_DEVICE
+    int fp = open(DATA_PATH, O_RDWR);
+#else
+    int fp = open(DATA_PATH, O_RDWR|O_CREAT|O_APPEND, S_IRWXU|S_IRWXG|S_IRWXO);
+#endif
 
-	pthread_mutex_lock(&s_mutex);
-	int fd = open(DATA_PATH, O_RDONLY);
-	if (fd >=0){
-		while ((stor = read(fd, buffer, BUF_SIZE)) >0) {
-			send(socket_id, buffer, stor, 0);
-		}
-		close(fd);
-	}
-	pthread_mutex_unlock(&s_mutex);
+    while (size > 0) {
+            char *newline_pos = strchr(local_buffer, '\n');
+            if (newline_pos) {
+                    size_t index = newline_pos - local_buffer;
+                    local_buffer[index+1] = '\0';
+            }
+            unsigned char len = strlen(local_buffer);
+#ifdef USE_AESD_CHAR_DEVICE
+            if (strstr(local_buffer, "AESDCHAR_IOCSEEKTO"))
+            {
+                    int write_cmd, write_cmd_offset;
+                    sscanf(local_buffer, "AESDCHAR_IOCSEEKTO:%d,%d", &write_cmd, &write_cmd_offset);
+                    struct aesd_seekto seekto;
+                    seekto.write_cmd = write_cmd;
+                    seekto.write_cmd_offset = write_cmd_offset;
+                    
+		    if (ioctl(fp, AESDCHAR_IOCSEEKTO, &seekto) == -1) {
+                            perror("ioctl failed");
+                    }
+            }
+            else{
+                    write(fp, local_buffer, len);
+            }
+#else
+            write(fp, local_buffer, len);
+#endif
+            if (newline_pos)
+                    break;
+            memset(local_buffer, 0, sizeof(local_buffer));
+            size = recv(connection, local_buffer, sizeof(local_buffer)-1, 0);
+            local_buffer[size] = '\0';
+    }
 
-	close(socket_id);
-	return NULL;
+    ssize_t sent = read(fp, local_buffer, sizeof(local_buffer)-1);
+    local_buffer[sent] = '\0';
+    while (sent > 0) {
+            send(connection, local_buffer, strlen(local_buffer), 0);
+            memset(local_buffer, 0, sizeof(local_buffer));
+            sent = read(fp, local_buffer, sizeof(local_buffer)-1);
+            local_buffer[sent] = '\0';
+    }
+    pthread_mutex_unlock(&s_mutex);
+    memset(local_buffer, 0, sizeof(local_buffer));
+    close(fp);
+    close(connection);
+    pthread_exit(NULL);
+    return NULL;
 }
 
 void* timestamp_handler(void* arg) {
